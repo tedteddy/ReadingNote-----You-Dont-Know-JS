@@ -114,22 +114,110 @@ a == b   //false
 ```
 
 ### 不等价性
-`<` `>` `<=` `>=`  [关系比较]
+
+`<` `>` `<=` `>=` [关系比较]
 `string` 不等价比较 使用字母顺序
 
 ```javascript
-var a = 41
-var b = '42'
-var c = '43'
-a < b //true => 两个值会强制转换成number
-b < c //true
+var a = 41;
+var b = "42";
+var c = "43";
+a < b; //true => 两个值会强制转换成number
+b < c; //true
 ```
 
 ```javascript
-var a = 42
-var b = 'foo'
-a > b //false
-a < b //false
-a == b //false => 42 == Nan or "42" == "foo"
+var a = 42;
+var b = "foo";
+a > b; //false
+a < b; //false
+a == b; //false => 42 == Nan or "42" == "foo"
 // b 被转换成 Nan => Nan既不大于也不小于其他值
 ```
+
+### 变量
+
+保留字 [reserved words] 不可用作变量名
+`a`-`z` `A`-`Z` `$` `_` 开头
+
+### 函数作用域
+
+`var` 关键字声明 => 作用于 当前函数作用域
+声明位于任何函数外部的顶层 => 全局作用域
+
+- 提升
+  - 无论 var 出现在一个作用域内部的何处，这个声明都被任务是属于整个作用域的，而且在作用域的所有位置都是可以访问的
+
+```javascript
+var a = 2;
+foo(); //可以工作 下方 `foo()`的声明被【提升】了
+function foo() {
+  a = 3;
+  console.log(a); // 3
+  var a; // 此处a的声明被提升到`foo()`内的最顶端
+}
+console.log(a); // 2
+```
+
+- 嵌套作用域
+  - 声明一个变量时，在作用域内的任何地方都是可用的，包括任何下层、内部作用域
+
+```javascript
+function foo() {
+  var a = 1;
+  function bar() {
+    var b = 2;
+    function baz() {
+      var c = 3;
+      console.log(a, b, c); // 1 2 3
+    }
+    baz(); //1 2 3
+    console.log(a, b); // 1,2
+  }
+  bar(); // 1,2
+  console.log(a); //1
+}
+foo(); //1
+```
+
+【错误示例】
+在一个作用域内访问一个不可用的变量的值 => `ReferenceError`
+为一个还没有声明的变量赋值 => 根据strict模式的状态 得到一个在顶层全局作用域中创建的变量 or 得到一个错误
+```javascript
+function foo(){
+  a = 1 //`a`没有被正式声明
+}
+foo();
+a;  // 1 => 自动全局变量
+
+//非常差劲！！！
+```
+- ES6 let
+
+
+### 条件
+```javascript
+switch (1){
+  case 1:
+    console.log(1)
+  case 10:
+    console.log(10)
+} // 1 10
+
+switch (1){
+  case 1:
+  case 10:
+    console.log(1, 10)
+} //1 10
+
+switch (1){
+  case 1:
+    console.log(1)
+    break;
+  case 10:
+    console.log(10)
+    break;
+} // 1
+```
+
+如果你在一个`case`中省略了`break`，并且这个`case`成立或运行，那么程序的执行将会不管下一个`case`语句是否成立而继续执行它
