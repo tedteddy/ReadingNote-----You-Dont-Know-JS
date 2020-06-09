@@ -182,42 +182,195 @@ foo(); //1
 
 【错误示例】
 在一个作用域内访问一个不可用的变量的值 => `ReferenceError`
-为一个还没有声明的变量赋值 => 根据strict模式的状态 得到一个在顶层全局作用域中创建的变量 or 得到一个错误
+为一个还没有声明的变量赋值 => 根据 strict 模式的状态 得到一个在顶层全局作用域中创建的变量 or 得到一个错误
+
 ```javascript
-function foo(){
-  a = 1 //`a`没有被正式声明
+function foo() {
+  a = 1; //`a`没有被正式声明
 }
 foo();
-a;  // 1 => 自动全局变量
+a; // 1 => 自动全局变量
 
 //非常差劲！！！
 ```
+
 - ES6 let
 
-
 ### 条件
+
 ```javascript
-switch (1){
+switch (1) {
   case 1:
-    console.log(1)
+    console.log(1);
   case 10:
-    console.log(10)
+    console.log(10);
 } // 1 10
 
-switch (1){
+switch (1) {
   case 1:
   case 10:
-    console.log(1, 10)
+    console.log(1, 10);
 } //1 10
 
-switch (1){
+switch (1) {
   case 1:
-    console.log(1)
+    console.log(1);
     break;
   case 10:
-    console.log(10)
+    console.log(10);
     break;
 } // 1
 ```
 
-如果你在一个`case`中省略了`break`，并且这个`case`成立或运行，那么程序的执行将会不管下一个`case`语句是否成立而继续执行它
+如果你在一个`case`中省略了`break`，并且这个`case`成立或运行，那么程序的执行将会不管下一个`case`
+
+- 三元操作符
+  - var b = (a > 41) ? "hello" : "world";
+
+### Strict 模式 `终于了解到了`
+
+ES5 在语言中加入了一个“strict 模式”，它收紧了一些特定行为的规则。一般来说，这些限制被视为使代码符合一组更安全和更合理的指导方针。另外，坚持 strict 模式一般会使你的代码对引擎有更强的可优化性。strict 模式对代码有很大的好处，你应当在你所有的程序中使用它。
+
+```javascript
+function foo() {
+  "use strict";
+  // 这部分代码是strict模式的
+  function bar() {
+    // 这部分代码是strict模式的
+  }
+}
+// 这部分代码不是strict模式的
+```
+
+```javascript
+"use strict";
+function foo() {
+  // 这部分代码是strict模式的
+  function bar() {
+    // 这部分代码是strict模式的
+  }
+}
+// 这部分代码是strict模式的
+```
+
+```javascript
+使用strict模式的一个关键`不同`or`改善`是，它不允许因为省略了var而进行隐含的自动全局变量声明：
+
+function foo() {
+	"use strict";	// 打开strict模式
+	a = 1;			// 缺少`var`，ReferenceError
+}
+
+foo();
+```
+
+### 函数作为值
+
+```javascript
+function foo(){
+  // ..
+}
+
+foo基本上是一个位于外围作用域的 `变量` 它给了被声明的function一个引用
+function本身就是一个值
+```
+
+```javascript
+var foo = function () {
+  //。。
+}; // 匿名函数表达式
+
+var x = function bar() {
+  // 。。
+}; // 命名函数表达式  => x() 执行
+```
+
+### 立即被调用的函数表达式
+
+```javascript
+(function IIFE(){
+  console.log('IIFE')
+})()
+//IIFE
+
+外部的 `()` 防止函数表达式被看作一个普通的函数函数声明
+
+var x = (function IIFE(){return 1})()
+
+x // 1
+```
+
+```js
+var a = 42;
+
+(function IIFE(){
+	var a = 10;
+	console.log( a );	// 10
+})();
+
+console.log( a );		// 42
+
+因为IIFE只是一个函数，而函数可以创建变量 作用域，以这样的风格使用一个IIFE经常被用于定义变量，而这些变量将不会影响围绕在IIFE外面的代码
+```
+
+###闭包
+`即使函数已经完成了运行，它依然可以“记住”并持续访问函数的作用域`
+
+```js
+function makeAdder(x) {
+  // 参数 `x` 是一个内部变量
+
+  // 内部函数 `add()` 使用 `x`，所以它对 `x` 拥有一个“闭包”
+  function add(y) {
+    return y + x;
+  }
+
+  return add;
+}
+
+类似于 add(y) ==> makeAdder(x)(y)
+每次调用外部的 `makeAdder(..)` 所返回的对内部 `add(..)函数的引用`可以记住被传入 `makeAdder(..)`的 `x`值
+```
+
+```js
+// `plusOne` 得到一个指向内部函数 `add(..)` 的引用，
+// `add()` 函数拥有对外部 `makeAdder(..)` 的参数 `x`的闭包
+var plusOne = makeAdder(1);
+
+// `plusTen` 得到一个指向内部函数 `add(..)` 的引用，
+// `add()` 函数拥有对外部 `makeAdder(..)` 的参数 `x`的闭包
+var plusTen = makeAdder(10);
+
+plusOne(3); // 4  <-- 1 + 3
+plusOne(41); // 42 <-- 1 + 41
+
+plusTen(13); // 23 <-- 10 + 13
+```
+
+###模块
+闭包常见的用法 模块模式
+模块让你定义对外面世界不可见的私有实现细节（变量、函数），和对外面可访问的共有 API
+
+```js
+function User() {
+  var username, password;
+  function doLogin(user, pw) {
+    username = user;
+    password = pw;
+
+    //做登录操作
+  }
+  var publicAPI = {
+    login: doLogin,
+  };
+
+  return publicAPI;
+}
+
+// 创建一个 `User` 模块的实例
+var fred = User();
+fred.login("hello", "qwer1234");
+
+//函数User()作为一个 外部作用域 持有变量 `username` 和 `password`，以及内部`doLogin()`函数；它们都是User模块内部的私有细节，是不能从外部世界访问的。
+```
+
