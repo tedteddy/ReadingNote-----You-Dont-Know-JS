@@ -13,7 +13,7 @@
 ```
     var a
     a = null
-    typeof a // "object"  => bug 且 注意双引号
+    typeof a // "object"  => bug 且 注意双引号 => js设计错误
 ```
 
 `typeof a`并不是在询问[a 的类型]，而是[当前 a 中值的类型]
